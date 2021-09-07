@@ -2,6 +2,8 @@ import argparse
 import os, csv, tqdm, pickle, re
 from laserembeddings import Laser
 
+csv.field_size_limit(131072*2)
+
 def embedder(lines):
     model = Laser()
     return model.embed_sentences(lines, lang='en')
