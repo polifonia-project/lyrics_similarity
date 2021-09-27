@@ -21,6 +21,7 @@ def overall_sim(input, folder1, folder2, lyrics1, lyrics2):
     vector2 = np.mean(matrix2, axis=0)
     sim = cosine_similarity(np.array([vector1.tolist(), vector2.tolist()]))[0,1]
     print('The overall similarity between the two lyrics is {}'.format(sim))
+    return sim
 
 def sim(input, folder1, folder2, lyrics1, lyrics2, min_similarity):
     song1_emb, song2_emb = get_matrices(input, folder1, lyrics1, folder2, lyrics2)

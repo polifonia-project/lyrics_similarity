@@ -1,5 +1,5 @@
 import argparse
-import os, csv, tqdm, pickle, re
+import os, csv, tqdm, pickle, re, urllib
 from laserembeddings import Laser
 
 csv.field_size_limit(131072*2)
@@ -17,7 +17,15 @@ def clean_lines(lyrics, min_line_len):
              line.startswith(('Lyrics licensed', 'Publisher: ', 'Writer/s: ')) == False]
     return lines
 
-def embed(input_folder, output_folder, files, min_line_len):
+def update_files():
+    urllib.request.urlretrieve('https://github.com/polifonia-project/sonar2021_demo/raw/datasets/output/lyrics-genius.csv',
+                       'lyrics/lyrics-genius.csv')
+    urllib.request.urlretrieve('https://github.com/polifonia-project/sonar2021_demo/raw/datasets/output/lyrics-songfacts.csv',
+                       'lyrics/lyrics-songfacts.csv')
+
+def embed(input_folder, output_folder, files, update_files_, min_line_len):
+    if update_files_ == True:
+        update_files()
     for fname in files:
         out_path = os.path.join(output_folder, fname)
         if not os.path.exists(out_path):
@@ -26,8 +34,8 @@ def embed(input_folder, output_folder, files, min_line_len):
             reader = csv.reader(f, delimiter=',')
             lyrics = [row for row in reader]
         for song in tqdm.tqdm(lyrics[1:]):
-            file_, artist, title, lyrics = song
-            out_file = os.path.join(out_path, '__'.join([artist, title])+'.pkl')
+            hash, lang, folder, file_, artist, title, lyrics = song
+            out_file = os.path.join(out_path, '__'.join([artist, title]).replace('/','_')+'.pkl')
             if not os.path.exists(out_file):
                 lines = clean_lines(lyrics, min_line_len)
                 embeddings = embedder(lines)
@@ -44,10 +52,11 @@ def parse_args():
     parser.add_argument('--input', type=str, default='lyrics')
     parser.add_argument('--output', type=str, default='embeddings')
     parser.add_argument('--files', type=list, default=['songfacts', 'genius'])
+    parser.add_argument('--update_files', type=bool, default=False)
     parser.add_argument('--min_line_len', type=int, default=10)
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_args()
-    embed(args.input, args.output, args.files, args.min_line_len)
+    embed(args.input, args.output, args.files, args.update_files, args.min_line_len)
